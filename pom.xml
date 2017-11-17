@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>hype-root</artifactId>
-  <version>0.0.20-ZACFORK</version>
+  <version>0.0.23-ZACFORK</version>
   <packaging>pom</packaging>
 
   <name>hype - hyper executor</name>
@@ -31,7 +31,7 @@
   <properties>
     <flo.version>0.0.9</flo.version>
     <grpc.version>1.0.3</grpc.version>
-    <gcloud.version>0.11.1-beta</gcloud.version>
+    <gcloud.version>1.2.0</gcloud.version>
     <gcloud-alpha.version>0.11.1-alpha</gcloud-alpha.version>
     <capsule.version>1.0.3</capsule.version>
     <jackson.version>2.8.4</jackson.version>
