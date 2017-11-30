@@ -90,8 +90,10 @@ public class KubernetesDockerRunner implements DockerRunner {
 
   @Override
   public Optional<URI> run(RunSpec runSpec) {
-    final int maxRetries = 3;
-    final Duration retryDelay = Duration.ofSeconds(30);
+    final int maxRetries = Integer.parseInt(Optional.ofNullable(System.getProperty("maxRetries")).orElse("3"));
+    final int retryDelayProperty = Integer.parseInt(Optional.ofNullable(System.getProperty("retryDelay"))
+        .orElse("30"));
+    final Duration retryDelay = Duration.ofSeconds(retryDelayProperty);
     Sleeper retrySleeper = Sleeper.DEFAULT;
 
     int retries = 0;
@@ -326,8 +328,11 @@ public class KubernetesDockerRunner implements DockerRunner {
 
   @AutoMatter
   interface VolumeMountInfo {
+
     PersistentVolumeClaim persistentVolumeClaim();
+
     Volume volume();
+
     io.fabric8.kubernetes.api.model.VolumeMount volumeMount();
   }
 }
