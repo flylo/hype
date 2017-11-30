@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.api.client.util.Sleeper;
 import com.google.common.annotations.VisibleForTesting;
 import com.spotify.hype.model.RunEnvironment;
 import com.spotify.hype.model.Secret;
@@ -58,6 +59,7 @@ import io.norberg.automatter.AutoMatter;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,18 +90,37 @@ public class KubernetesDockerRunner implements DockerRunner {
 
   @Override
   public Optional<URI> run(RunSpec runSpec) {
-    try {
-      final Pod pod = client.pods().create(createPod(runSpec));
-      final String podName = pod.getMetadata().getName();
-      LOG.info("Created pod {}", podName);
+    final int maxRetries = Integer.parseInt(Optional.ofNullable(System.getProperty("hypeMaxRetries")).orElse("3"));
+    final int retryDelayProperty = Integer.parseInt(Optional.ofNullable(System.getProperty("hypeRetryDelay"))
+        .orElse("10"));
+    final Duration retryDelay = Duration.ofSeconds(retryDelayProperty);
+    Sleeper retrySleeper = Sleeper.DEFAULT;
 
-      Optional<URI> uri = blockUntilComplete(podName);
-      client.pods().withName(podName).delete();
-      return uri;
-    } catch (KubernetesClientException kce) {
-      throw new RuntimeException("Failed to create Kubernetes pod", kce);
-    } catch (InterruptedException e) {
-      throw new RuntimeException("Interrupted while blocking", e);
+    int retries = 0;
+    while (true) {
+      try {
+        final Pod pod = client.pods().create(createPod(runSpec));
+        final String podName = pod.getMetadata().getName();
+        LOG.info("Created pod {}", podName);
+
+        Optional<URI> uri = blockUntilComplete(podName);
+        client.pods().withName(podName).delete();
+        return uri;
+      } catch (KubernetesClientException kce) {
+        if (++retries == maxRetries) {
+          throw new RuntimeException("Failed to create Kubernetes pod", kce);
+        }
+
+        LOG.warn(String.format("Failed on attempt #%d: %s", retries, kce.getMessage()), kce);
+        try {
+          retrySleeper.sleep(retryDelay.toMillis());
+        } catch (InterruptedException e1) {
+          LOG.warn("Failed to sleep", e1);
+          throw new RuntimeException(e1);
+        }
+      } catch (InterruptedException e) {
+        throw new RuntimeException("Interrupted while blocking", e);
+      }
     }
   }
 
@@ -307,8 +328,11 @@ public class KubernetesDockerRunner implements DockerRunner {
 
   @AutoMatter
   interface VolumeMountInfo {
+
     PersistentVolumeClaim persistentVolumeClaim();
+
     Volume volume();
+
     io.fabric8.kubernetes.api.model.VolumeMount volumeMount();
   }
 }
