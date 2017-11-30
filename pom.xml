@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>hype-root</artifactId>
-  <version>0.0.23-ZACFORK</version>
+  <version>0.0.24-ZACFORK</version>
   <packaging>pom</packaging>
 
   <name>hype - hyper executor</name>

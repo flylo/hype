@@ -90,9 +90,9 @@ public class KubernetesDockerRunner implements DockerRunner {
 
   @Override
   public Optional<URI> run(RunSpec runSpec) {
-    final int maxRetries = Integer.parseInt(Optional.ofNullable(System.getProperty("maxRetries")).orElse("3"));
-    final int retryDelayProperty = Integer.parseInt(Optional.ofNullable(System.getProperty("retryDelay"))
-        .orElse("30"));
+    final int maxRetries = Integer.parseInt(Optional.ofNullable(System.getProperty("hypeMaxRetries")).orElse("3"));
+    final int retryDelayProperty = Integer.parseInt(Optional.ofNullable(System.getProperty("hypeRetryDelay"))
+        .orElse("10"));
     final Duration retryDelay = Duration.ofSeconds(retryDelayProperty);
     Sleeper retrySleeper = Sleeper.DEFAULT;
 
