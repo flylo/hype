@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>hype-root</artifactId>
-  <version>0.0.25-ZACFORK</version>
+  <version>0.0.26-ZACFORK</version>
   <packaging>pom</packaging>
 
   <name>hype - hyper executor</name>
@@ -114,6 +114,7 @@
       <dependency>
         <groupId>com.spotify</groupId>
         <artifactId>docker-client</artifactId>
+        <classifier>shaded</classifier>
         <version>8.3.1</version>
       </dependency>
       <dependency>
